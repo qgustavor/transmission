@@ -3,7 +3,6 @@
 const axios = require('axios')
 const EventEmitter = require('events')
 const async = require('async')
-const Base64 = require('js-base64').Base64
 const uuid = require('uuid/v4')
 
 class Transmission extends EventEmitter {
@@ -29,8 +28,11 @@ class Transmission extends EventEmitter {
     this.url = `${protocol}://${host}:${port}${path}`
     this.key = null
 
-    if (options.username) {
-      this.authHeader = 'Basic ' + Base64.encode(options.username + (options.password ? ':' + options.password : ''))
+    if (options.username || options.password) {
+      this.authConfig = {
+        username: options.username,
+        password: options.password
+      }
     }
 
     this.statusArray = ['STOPPED', 'CHECK_WAIT', 'CHECK', 'DOWNLOAD_WAIT', 'DOWNLOAD', 'SEED_WAIT', 'SEED', 'ISOLATED']
@@ -150,8 +152,8 @@ class Transmission extends EventEmitter {
           }
         }
 
-        if (this.authHeader) {
-          config.headers.Authorization = this.authHeader
+        if (this.authConfig) {
+          config.auth = this.authConfig
         }
 
         try {
